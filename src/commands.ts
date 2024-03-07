@@ -21,6 +21,7 @@ interface TFile extends TTab {
 
 interface TBrowser extends TTab {
   uri: string;
+
 }
 
 interface TTerminal extends TTab {
@@ -171,7 +172,12 @@ async function openFile(uri: vscode.Uri) {
   }
 }
 
-async function openHtml(uri: vscode.Uri, name: string, column: number) {
+async function openHtml(uri: vscode.Uri, name: string, column: number, target: string) {
+  if (target === '_blank') {
+    vscode.env.openExternal(uri);
+    return;
+  }
+
   const openTabs = vscode.window.tabGroups.all.map(group => group.tabs).flat();
   const tab = openTabs.find(t => t.label === name);
   if (tab) {
@@ -200,7 +206,7 @@ async function openHtml(uri: vscode.Uri, name: string, column: number) {
           openFile(message.uri);
           break;
         case 'openHtml':
-          openHtml(message.uri, message.name, message.viewColumn);
+          openHtml(message.uri, message.name, message.viewColumn,message.target);
           break;
         case 'openTerminal':
           openTerminal(message.command, message.name, message.viewColumn, message.location);
@@ -258,7 +264,7 @@ export async function restoreEditors(context: vscode.ExtensionContext) {
         break;
       case "browser":
         const browser = <TBrowser>tab;  
-        await openHtml(vscode.Uri.parse(browser.uri), browser.name, browser.viewColumn);
+        await openHtml(vscode.Uri.parse(browser.uri), browser.name, browser.viewColumn, "");
         break;
       case "terminal":
         const terminal = <TTerminal>tab;  
@@ -362,11 +368,12 @@ function getWebViewHTML(uri: string) {
                 });
               }
             
-              function openHtml(uri, title) {
+              function openHtml(uri, name, target) {
                 vscode.postMessage({
                   function: 'openHtml',
                   uri: uri,
-                  title: title,
+                  name: name,
+                  target: target,
                 });
               }
               
@@ -379,8 +386,10 @@ function getWebViewHTML(uri: string) {
               }
   
               function displayMessage (evt) {
+                console.log(evt.data);
                 if (evt.data.function === 'openHtml') {
-                  openHtml(evt.data.uri,evt.data.title);
+                  console.log("openHtml");
+                  openHtml(evt.data.uri,evt.data.name, evt.data.target);
                 }
                 
                 if (evt.data.function === 'openFile') {
