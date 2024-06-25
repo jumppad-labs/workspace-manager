@@ -384,6 +384,10 @@ function getWebViewHTML(uri: string) {
                   name: name,
                 });
               }
+
+              function copyToClipboard(text) {
+                navigator.clipboard.writeText(text);
+              }
   
               function displayMessage (evt) {
                 console.log(evt.data);
@@ -403,6 +407,10 @@ function getWebViewHTML(uri: string) {
                 if (evt.data.function === 'reloadIFrame') {
                   reloadIFrame();
                 }
+                
+                if (evt.data.function === 'copy') {
+                  copyToClipboard(evt.data.text);
+                }
               }
               
               if (window.addEventListener) {
@@ -415,6 +423,7 @@ function getWebViewHTML(uri: string) {
               function reloadIFrame() {
                 document.getElementById('content').src = document.getElementById('content').src
               }
+
             </script>
         </head>
         <body>
@@ -423,6 +432,7 @@ function getWebViewHTML(uri: string) {
               <li style="float:right"><a class="active" href="#" onclick="reloadIFrame()">&#x27F3</a></li>
             </ul>-->
             <iframe width="100%" height="100%" src="${uri}" frameborder="0" id="content"
+              allow="clipboard-read; clipboard-write; picture-in-picture; fullscreen"
               sandbox="allow-same-origin allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox allow-presentation allow-scripts"></iframe>
         </body>
         </html>`;
